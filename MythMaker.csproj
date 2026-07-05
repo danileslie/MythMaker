@@ -14,5 +14,11 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
+<ItemGroup>
+		<Compile Remove="Mythmaker.Tests/**" />
+		<Content Remove="Mythmaker.Tests/**" />
+		<EmbeddedResource Remove="Mythmaker.Tests/**" />
+		<None Remove="Mythmaker.Tests/**" />
+</ItemGroup>
 
 </Project>
