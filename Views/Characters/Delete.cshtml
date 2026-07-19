@@ -1,0 +1,23 @@
+﻿@model MythMaker.Models.Character
+
+<h2>Delete Character</h2>
+
+<p>
+    <strong>Warning: this action is permanent and cannot be undone.</strong> Deleting
+    <strong>@Model.Name</strong> will remove it and all of its data forever.
+</p>
+
+<dl>
+    <dt>Name</dt>
+    <dd>@Model.Name</dd>
+    <dt>Race / Class</dt>
+    <dd>@Model.Race @Model.Class</dd>
+    <dt>Level</dt>
+    <dd>@Model.Level</dd>
+</dl>
+
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">Yes, permanently delete this character</button>
+    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">Cancel</a>
+</form>

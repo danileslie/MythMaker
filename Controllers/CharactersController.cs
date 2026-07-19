@@ -171,5 +171,43 @@ namespace MythMaker.Controllers
 
             return RedirectToAction("Details", new { id = character.Id });
         }
+        [HttpGet]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var userId = _userManager.GetUserId(User);
+
+            // same ownership check as everywhere else - don't even show someone
+            // else's character on a delete confirmation screen
+            var character = await _context.Characters
+                .FirstOrDefaultAsync(c => c.Id == id && c.OwnerId == userId);
+
+            if (character == null)
+            {
+                return NotFound();
+            }
+
+            return View(character);
+        }
+
+        // can't have two methods both named Delete with the same (int id) signature -
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var userId = _userManager.GetUserId(User);
+
+            var character = await _context.Characters
+                .FirstOrDefaultAsync(c => c.Id == id && c.OwnerId == userId);
+
+            if (character == null)
+            {
+                return NotFound();
+            }
+
+            _context.Characters.Remove(character);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("Index");
+        }
     }
 }
