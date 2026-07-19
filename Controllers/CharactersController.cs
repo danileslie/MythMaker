@@ -62,7 +62,6 @@ namespace MythMaker.Controllers
             _context.Characters.Add(character);
             await _context.SaveChangesAsync(); // nothing's actually saved until this line runs
 
-            // Details doesn't exist yet - this'll 404 until that story's built
             return RedirectToAction("Details", new { id = character.Id });
         }
 
@@ -95,6 +94,82 @@ namespace MythMaker.Controllers
             }
 
             return View(character);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var userId = _userManager.GetUserId(User);
+
+            // check ownership on the GET too - otherwise someone could load another
+            // user's character into the edit form even if they couldn't save it after
+            var character = await _context.Characters
+                .FirstOrDefaultAsync(c => c.Id == id && c.OwnerId == userId);
+
+            if (character == null)
+            {
+                return NotFound();
+            }
+
+            // copy the real entity into a viewmodel so the form only ever sees
+            // what it's supposed to edit - no OwnerId/IsDraft exposed here either
+            var model = new EditCharacterViewModel
+            {
+                Id = character.Id,
+                Name = character.Name,
+                Race = character.Race,
+                Class = character.Class,
+                Level = character.Level,
+                Strength = character.Strength,
+                Dexterity = character.Dexterity,
+                Constitution = character.Constitution,
+                Intelligence = character.Intelligence,
+                Wisdom = character.Wisdom,
+                Charisma = character.Charisma,
+                Backstory = character.Backstory
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(EditCharacterViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var userId = _userManager.GetUserId(User);
+
+            // re-checking ownership here too, separately from the GET - this is the
+            // actual security boundary, GET's check is just so the form doesn't even load
+            var character = await _context.Characters
+                .FirstOrDefaultAsync(c => c.Id == model.Id && c.OwnerId == userId);
+
+            if (character == null)
+            {
+                return NotFound();
+            }
+
+            // mutating the tracked entity directly instead of building a new Character -
+            // this is what makes EF generate an UPDATE instead of a second INSERT
+            character.Name = model.Name;
+            character.Race = model.Race;
+            character.Class = model.Class;
+            character.Level = model.Level;
+            character.Strength = model.Strength;
+            character.Dexterity = model.Dexterity;
+            character.Constitution = model.Constitution;
+            character.Intelligence = model.Intelligence;
+            character.Wisdom = model.Wisdom;
+            character.Charisma = model.Charisma;
+            character.Backstory = model.Backstory;
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("Details", new { id = character.Id });
         }
     }
 }
