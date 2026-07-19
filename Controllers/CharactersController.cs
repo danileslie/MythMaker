@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using MythMaker.Data;
 using MythMaker.Models;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace MythMaker.Controllers
 {
@@ -63,6 +64,37 @@ namespace MythMaker.Controllers
 
             // Details doesn't exist yet - this'll 404 until that story's built
             return RedirectToAction("Details", new { id = character.Id });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Index()
+        {
+            var userId = _userManager.GetUserId(User);
+
+            // only show my own finalized characters - drafts get their own separate view later
+            var characters = await _context.Characters
+                .Where(c => c.OwnerId == userId && !c.IsDraft)
+                .ToListAsync();
+
+            return View(characters);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Details(int id)
+        {
+            var userId = _userManager.GetUserId(User);
+
+            // checking OwnerId here too, not just Id - otherwise anyone logged in
+            // could view any character just by guessing/incrementing the id in the url
+            var character = await _context.Characters
+                .FirstOrDefaultAsync(c => c.Id == id && c.OwnerId == userId);
+
+            if (character == null)
+            {
+                return NotFound();
+            }
+
+            return View(character);
         }
     }
 }

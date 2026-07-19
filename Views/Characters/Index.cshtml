@@ -1,0 +1,21 @@
+﻿@model List<MythMaker.Models.Character>
+
+<h2>My Characters</h2>
+
+@if (!Model.Any())
+{
+    <p>You haven't created any characters yet. <a asp-action="Create">Create your first one</a>.</p>
+}
+else
+{
+    <ul>
+        @foreach (var character in Model)
+        {
+            <li>
+                <a asp-action="Details" asp-route-id="@character.Id">
+                    @character.Name — @character.Race @character.Class, Level @character.Level
+                </a>
+            </li>
+        }
+    </ul>
+}
