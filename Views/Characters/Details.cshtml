@@ -1,0 +1,9 @@
+﻿@model MythMaker.Models.Character
+
+<h2>@Model.Name</h2>
+
+<p>@Model.Race @Model.Class, Level @Model.Level</p>
+<p>STR @Model.Strength | DEX @Model.Dexterity | CON @Model.Constitution | INT @Model.Intelligence | WIS @Model.Wisdom | CHA @Model.Charisma</p>
+<p>@Model.Backstory</p>
+
+<a asp-action="Index">Back to my characters</a>
