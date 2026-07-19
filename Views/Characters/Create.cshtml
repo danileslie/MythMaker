@@ -2,10 +2,15 @@
 
 <h2>Create Character</h2>
 
+<div id="autosaveError" style="display:none;" class="alert alert-danger">
+    Draft not saved. <button type="button" id="retryAutosave" class="btn btn-sm btn-warning">Retry</button>
+</div>
+
 <form asp-action="Create" method="post">
     <div asp-validation-summary="All" class="text-danger"></div>
 
     <div class="form-group">
+        <input type="hidden" asp-for="Id" id="characterId" />
         <label asp-for="Name"></label>
         <input asp-for="Name" class="form-control" />
         <span asp-validation-for="Name" class="text-danger"></span>
@@ -75,24 +80,9 @@
 </form>
 
 @section Scripts {
+    <script src="~/js/character-autosave.js"></script>
+    <script src="~/js/character-dropdown.js"></script>
     <script>
-        function setupDropdown(selectId, inputId) {
-            const select = document.getElementById(selectId);
-            const input = document.getElementById(inputId);
-
-            select.addEventListener('change', function () {
-                if (select.value === 'Other') {
-                    input.style.display = 'block';
-                    input.value = '';
-                } else {
-                    input.style.display = 'none';
-                    input.value = select.value;
-                }
-            });
-
-            input.value = select.value;
-        }
-
         setupDropdown('raceSelect', 'raceInput');
         setupDropdown('classSelect', 'classInput');
     </script>

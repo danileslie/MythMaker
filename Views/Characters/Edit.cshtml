@@ -60,35 +60,8 @@
 </form>
 
 @section Scripts {
+    <script src="~/js/character-dropdown.js"></script>
     <script>
-        function setupDropdown(selectId, inputId) {
-            const select = document.getElementById(selectId);
-            const input = document.getElementById(inputId);
-
-            // unlike create, this form loads with an existing value already in it -
-            // check if that value matches one of the presets or if it's custom
-            const matchingOption = Array.from(select.options).find(o => o.value === input.value);
-            if (matchingOption) {
-                // matches a preset - select it, keep the text input hidden
-                select.value = input.value;
-                input.style.display = 'none';
-            } else {
-                // doesn't match anything - must've been typed in as "Other" originally
-                select.value = 'Other';
-                input.style.display = 'block';
-            }
-
-            select.addEventListener('change', function () {
-                if (select.value === 'Other') {
-                    input.style.display = 'block';
-                    input.value = '';
-                } else {
-                    input.style.display = 'none';
-                    input.value = select.value;
-                }
-            });
-        }
-
         setupDropdown('raceSelect', 'raceInput');
         setupDropdown('classSelect', 'classInput');
     </script>

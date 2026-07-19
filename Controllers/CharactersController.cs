@@ -36,31 +36,43 @@ namespace MythMaker.Controllers
                 return View(model);
             }
 
-            // grabs the id of whoever's actually logged in right now
             var userId = _userManager.GetUserId(User);
 
-            // mapping fields by hand instead of just casting the viewmodel -
-            // keeps OwnerId/IsDraft out of the form entirely so nothing submitted
-            // by the user can touch them
-            var character = new Character
-            {
-                Name = model.Name,
-                Race = model.Race,
-                Class = model.Class,
-                Level = model.Level,
-                Strength = model.Strength,
-                Dexterity = model.Dexterity,
-                Constitution = model.Constitution,
-                Intelligence = model.Intelligence,
-                Wisdom = model.Wisdom,
-                Charisma = model.Charisma,
-                Backstory = model.Backstory,
-                IsDraft = false,
-                OwnerId = userId
-            };
+            Character character;
 
-            _context.Characters.Add(character);
-            await _context.SaveChangesAsync(); // nothing's actually saved until this line runs
+            if (model.Id.HasValue)
+            {
+                // a draft already exists from autosave - finalize that same row,
+                // don't create a second one
+                character = await _context.Characters
+                    .FirstOrDefaultAsync(c => c.Id == model.Id.Value && c.OwnerId == userId);
+
+                if (character == null)
+                {
+                    return NotFound();
+                }
+            }
+            else
+            {
+                // no autosave ever fired (e.g. submitted immediately) - genuinely new row
+                character = new Character { OwnerId = userId };
+                _context.Characters.Add(character);
+            }
+
+            character.Name = model.Name;
+            character.Race = model.Race;
+            character.Class = model.Class;
+            character.Level = model.Level;
+            character.Strength = model.Strength;
+            character.Dexterity = model.Dexterity;
+            character.Constitution = model.Constitution;
+            character.Intelligence = model.Intelligence;
+            character.Wisdom = model.Wisdom;
+            character.Charisma = model.Charisma;
+            character.Backstory = model.Backstory;
+            character.IsDraft = false;
+
+            await _context.SaveChangesAsync();
 
             return RedirectToAction("Details", new { id = character.Id });
         }
@@ -208,6 +220,57 @@ namespace MythMaker.Controllers
             await _context.SaveChangesAsync();
 
             return RedirectToAction("Index");
+        }
+
+        // not a form post, expects json in the body
+        // and skips full validation on purpose since drafts can be incomplete
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Autosave([FromBody] AutosaveViewModel model)
+        {
+            var userId = _userManager.GetUserId(User);
+
+            Character character;
+
+            if (model.Id.HasValue)
+            {
+                // already has an id -> this is an update to an existing draft,
+                // same ownership check as everywhere else
+                character = await _context.Characters
+                    .FirstOrDefaultAsync(c => c.Id == model.Id.Value && c.OwnerId == userId);
+
+                if (character == null)
+                {
+                    return NotFound();
+                }
+            }
+            else
+            {
+                // no id yet -> first autosave on a brand new character, create the draft row
+                character = new Character { OwnerId = userId, IsDraft = true };
+                _context.Characters.Add(character);
+            }
+
+            // no ModelState check here on purpose -> more relaxed validation
+            // a draft can have blank/incomplete fields
+            character.Name = model.Name;
+            character.Race = model.Race;
+            character.Class = model.Class;
+            character.Level = model.Level;
+            character.Strength = model.Strength;
+            character.Dexterity = model.Dexterity;
+            character.Constitution = model.Constitution;
+            character.Intelligence = model.Intelligence;
+            character.Wisdom = model.Wisdom;
+            character.Charisma = model.Charisma;
+            character.Backstory = model.Backstory;
+            character.IsDraft = true;
+
+            await _context.SaveChangesAsync();
+
+            // send the id back so the frontend knows which draft to keep updating
+            // on every autosave after this first one
+            return Json(new { id = character.Id });
         }
     }
 }
