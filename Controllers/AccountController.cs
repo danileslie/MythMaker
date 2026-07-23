@@ -8,6 +8,8 @@ namespace MythMaker.Controllers
 {
     public class AccountController : Controller
     {
+        //UserManager for creating/finding/updating users
+        //SigninManager for sign in cookie mechanics
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
 
@@ -17,6 +19,7 @@ namespace MythMaker.Controllers
             _signInManager = signInManager;
         }
 
+        // register get (view) form vs register submit form actions
         [HttpGet]
         public IActionResult Register()
         {
@@ -24,6 +27,7 @@ namespace MythMaker.Controllers
         }
 
         [HttpPost]
+        //Security measure to prevent CSRF attacks (probably not necessary but eh)
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {

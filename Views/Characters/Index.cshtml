@@ -1,20 +1,35 @@
-﻿@model List<MythMaker.Models.Character>
+﻿@model MythMaker.Models.CharacterIndexViewModel
 
 <h2>My Characters</h2>
 
-@if (!Model.Any())
+@if (!Model.FinalizedCharacters.Any())
 {
     <p>You haven't created any characters yet. <a asp-action="Create">Create your first one</a>.</p>
 }
 else
 {
     <ul>
-        @foreach (var character in Model)
+        @foreach (var character in Model.FinalizedCharacters)
         {
             <li>
                 <a asp-action="Details" asp-route-id="@character.Id">
                     @character.Name — @character.Race @character.Class, Level @character.Level
                 </a>
+            </li>
+        }
+    </ul>
+}
+
+@if (Model.Drafts.Any())
+{
+    <h3>Drafts</h3>
+    <ul>
+        @foreach (var draft in Model.Drafts)
+        {
+            <li>
+                @(string.IsNullOrEmpty(draft.Name) ? "(unnamed draft)" : draft.Name)
+                <a asp-action="Create" asp-route-id="@draft.Id">Resume</a>
+                <a asp-action="Delete" asp-route-id="@draft.Id">Delete</a>
             </li>
         }
     </ul>

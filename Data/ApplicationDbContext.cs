@@ -17,7 +17,7 @@ namespace MythMaker.Data
         }
         public DbSet<Character> Characters { get; set; }
 
-        // OwnerId is just a plain string until we say otherwise - this tells EF it's a real FK to
+        // OwnerId -> a plain string until stated otherwise - this tells EF it's a real FK to
         // IdentityUser, and sets cascade delete so deleting a user takes their characters with it.
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
