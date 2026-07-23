@@ -153,7 +153,13 @@ namespace MythMaker.Controllers
                 .Build();
 
             // ?? "" in case backstory was never set on a draft - ToHtml throws on null
-            ViewBag.RenderedBackstory = Markdig.Markdown.ToHtml(character.Backstory ?? "", pipeline);
+            var rawHtml = Markdig.Markdown.ToHtml(character.Backstory ?? "", pipeline);
+
+            // second layer on top of DisableHtml - Markdig's own docs say DisableHtml
+            // alone isn't full sanitization (e.g. javascript: links from normal markdown
+            // link syntax still get through). HtmlSanitizer catches that gap.
+            var sanitizer = new Ganss.Xss.HtmlSanitizer();
+            ViewBag.RenderedBackstory = sanitizer.Sanitize(rawHtml);
 
             return View(character);
         }
