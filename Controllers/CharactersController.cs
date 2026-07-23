@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Markdig;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MythMaker.Data;
 using MythMaker.Models;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 
 namespace MythMaker.Controllers
 {
@@ -144,6 +145,15 @@ namespace MythMaker.Controllers
             {
                 return NotFound();
             }
+            // DisableHtml -> without it, raw html typed
+            // into backstory (like a script tag) would render and execute for anyone
+            // viewing the character. this strips it to plain visible text instead
+            var pipeline = new Markdig.MarkdownPipelineBuilder()
+                .DisableHtml()
+                .Build();
+
+            // ?? "" in case backstory was never set on a draft - ToHtml throws on null
+            ViewBag.RenderedBackstory = Markdig.Markdown.ToHtml(character.Backstory ?? "", pipeline);
 
             return View(character);
         }

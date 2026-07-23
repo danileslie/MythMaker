@@ -4,7 +4,10 @@
 
 <p>@Model.Race @Model.Class, Level @Model.Level</p>
 <p>STR @Model.Strength | DEX @Model.Dexterity | CON @Model.Constitution | INT @Model.Intelligence | WIS @Model.Wisdom | CHA @Model.Charisma</p>
-<p>@Model.Backstory</p>
+<!-- Html.Raw -> RenderedBackstory already went through
+     Markdig with DisableHtml -> it's not raw user input, it's the sanitized
+     output of that pipeline -->
+<div>@Html.Raw(ViewBag.RenderedBackstory)</div>
 
 <a asp-action="Index">Back to my characters</a>
 <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
