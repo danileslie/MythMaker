@@ -97,5 +97,24 @@ namespace MythMaker.Tests
             Assert.Null(deleted);
         }
 
+        [Fact]
+        public async Task Character_DraftToFinalized_TransitionPersists()
+        {
+            // Arrange - save as a draft first, same as autosave would
+            using var context = CreateContext();
+            var character = new Character { Name = "Aria", Level = 5, Race = "Elf", Class = "Wizard", Backstory = "", OwnerId = "user-1", IsDraft = true };
+            context.Characters.Add(character);
+            await context.SaveChangesAsync();
+
+            // Act - flip IsDraft to false, same as Create's POST action does on finalize
+            var toFinalize = await context.Characters.FirstOrDefaultAsync(c => c.Id == character.Id);
+            toFinalize.IsDraft = false;
+            await context.SaveChangesAsync();
+
+            // Assert - re-query fresh, confirm it actually stuck as finalized
+            var finalized = await context.Characters.FirstOrDefaultAsync(c => c.Id == character.Id);
+            Assert.False(finalized.IsDraft);
+        }
+
     }
 }

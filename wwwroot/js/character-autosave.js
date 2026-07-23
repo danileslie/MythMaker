@@ -1,8 +1,9 @@
-﻿// tracks which draft we're actually updating - starts empty since a brand
-// new character has no id yet. gets set once the first autosave succeeds,
-// and every save after that sends this id so the server updates instead
-// of creating a new draft row every time
-let currentCharacterId = null;
+﻿// on a brand new Create form the hidden field is empty, so this becomes null.
+// on a resumed draft, Razor already filled the hidden field with the real id -
+// this reads that instead of assuming null every time
+let currentCharacterId = document.getElementById('characterId').value
+    ? parseInt(document.getElementById('characterId').value)
+    : null;
 
 // holds the pending "save in 500ms" timer so it can be cancelled/restarted
 let debounceTimer = null;

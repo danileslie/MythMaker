@@ -22,9 +22,45 @@ namespace MythMaker.Controllers
         }
 
         [HttpGet]
-        public IActionResult Create()
+        public async Task<IActionResult> Create(int? id)
         {
-            return View();
+            // no id in the url - normal "start fresh" case, same as before
+            if (!id.HasValue)
+            {
+                return View();
+            }
+
+            var userId = _userManager.GetUserId(User);
+
+            // resuming a draft - only ever loads drafts, not finalized characters,
+            // so this link can't be repurposed to reload something already finished
+            var character = await _context.Characters
+                .FirstOrDefaultAsync(c => c.Id == id.Value && c.OwnerId == userId && c.IsDraft);
+
+            if (character == null)
+            {
+                return NotFound();
+            }
+
+            // copy the draft's saved data into the viewmodel so the form loads pre-filled -
+            // including Id, so autosave/submit both know this is an existing row, not new
+            var model = new CreateCharacterViewModel
+            {
+                Id = character.Id,
+                Name = character.Name,
+                Race = character.Race,
+                Class = character.Class,
+                Level = character.Level,
+                Strength = character.Strength,
+                Dexterity = character.Dexterity,
+                Constitution = character.Constitution,
+                Intelligence = character.Intelligence,
+                Wisdom = character.Wisdom,
+                Charisma = character.Charisma,
+                Backstory = character.Backstory
+            };
+
+            return View(model);
         }
 
         [HttpPost]
@@ -81,13 +117,17 @@ namespace MythMaker.Controllers
         public async Task<IActionResult> Index()
         {
             var userId = _userManager.GetUserId(User);
+            var viewModel = new CharacterIndexViewModel
+            {
+                FinalizedCharacters = await _context.Characters
+                    .Where(c => c.OwnerId == userId && !c.IsDraft)
+                    .ToListAsync(),
+                Drafts = await _context.Characters
+                    .Where(c => c.OwnerId == userId && c.IsDraft)
+                    .ToListAsync()
+            };
 
-            // only show my own finalized characters - drafts get their own separate view later
-            var characters = await _context.Characters
-                .Where(c => c.OwnerId == userId && !c.IsDraft)
-                .ToListAsync();
-
-            return View(characters);
+            return View(viewModel);
         }
 
         [HttpGet]
