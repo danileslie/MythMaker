@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using MythMaker.Data;
 using MythMaker.Models;
 
@@ -114,6 +115,30 @@ namespace MythMaker.Tests
             // Assert - re-query fresh, confirm it actually stuck as finalized
             var finalized = await context.Characters.FirstOrDefaultAsync(c => c.Id == character.Id);
             Assert.False(finalized.IsDraft);
+        }
+
+        [Fact]
+        public async Task DeletingUser_CascadesDeleteToTheirCharacters()
+        {
+            // Arrange - a user with two characters
+            using var context = CreateContext();
+
+            var user = new IdentityUser { Id = "user-to-delete", UserName = "test@example.com" };
+            context.Users.Add(user);
+            context.Characters.Add(new Character { Name = "Aria", Level = 5, Race = "Elf", Class = "Wizard", Backstory = "", OwnerId = "user-to-delete" });
+            context.Characters.Add(new Character { Name = "Borin", Level = 3, Race = "Dwarf", Class = "Fighter", Backstory = "", OwnerId = "user-to-delete" });
+            await context.SaveChangesAsync();
+
+            // Act - delete the user directly, same as UserManager.DeleteAsync does under the hood
+            context.Users.Remove(user);
+            await context.SaveChangesAsync();
+
+            // Assert - both characters should be gone too, not orphaned
+            var remainingCharacters = await context.Characters
+                .Where(c => c.OwnerId == "user-to-delete")
+                .ToListAsync();
+
+            Assert.Empty(remainingCharacters);
         }
 
     }

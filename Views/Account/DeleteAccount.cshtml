@@ -1,0 +1,14 @@
+﻿<h2>Delete Account</h2>
+
+<p><strong>Warning: this action is permanent and cannot be undone.</strong></p>
+
+<p>
+    Deleting your account will also permanently delete
+    <strong>@ViewBag.CharacterCount</strong> character(s), including any drafts.
+    This cannot be reversed.
+</p>
+
+<form asp-action="DeleteAccount" method="post">
+    <button type="submit" class="btn btn-danger">Yes, permanently delete my account and all my characters</button>
+    <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>

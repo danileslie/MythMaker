@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Infrastructure;
+using MythMaker.Data;
 using MythMaker.Models;
 using System.Threading.Tasks;
 
@@ -10,13 +12,16 @@ namespace MythMaker.Controllers
     {
         //UserManager for creating/finding/updating users
         //SigninManager for sign in cookie mechanics
+        // ApplicationDbContext for counting characters before account deletion
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly ApplicationDbContext _context;
 
-        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager)
+        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, ApplicationDbContext context)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _context = context;
         }
 
         // register get (view) form vs register submit form actions
@@ -84,6 +89,38 @@ namespace MythMaker.Controllers
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
+            return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> DeleteAccount()
+        {
+            var userId = _userManager.GetUserId(User);
+
+            var characterCount = await _context.Characters
+                .CountAsync(c => c.OwnerId == userId);
+
+            ViewBag.CharacterCount = characterCount;
+
+            return View();
+        }
+
+        [HttpPost, ActionName("DeleteAccount")]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteAccountConfirmed()
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            await _signInManager.SignOutAsync();
+            await _userManager.DeleteAsync(user);
+
             return RedirectToAction("Index", "Home");
         }
     }
