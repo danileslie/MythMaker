@@ -32,6 +32,7 @@
             @if (User.Identity.IsAuthenticated)
             {
                 <span class="navbar-text">Logged in as @User.Identity.Name</span>
+                <a asp-controller="Account" asp-action="DeleteAccount" class="nav-link">Delete Account</a>
                 <form asp-controller="Account" asp-action="Logout" method="post" class="form-inline">
                     <button type="submit" class="btn btn-link nav-link">Logout</button>
                 </form>
